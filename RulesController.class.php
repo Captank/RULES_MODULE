@@ -77,7 +77,9 @@ class RulesController {
 	 * @Matches("/^rules_sign$/i")
 	 */
 	public function signCommand($message, $channel, $sender, $sendto, $args) {
-	
+		$sql = 'REPLACE INTO `rules_signs` (`player`,`signtime`) VALUES (?,?)';
+		$this->db->query($sql,$sender,time());
+		$sendto->reply("You signed the rules.");
 	}
 	
 	// $accessManager->getAccessLevelForCharacter($name)
