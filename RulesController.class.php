@@ -6,6 +6,18 @@
  *
  * @Instance
  *
+ *	@DefineCommand(
+ *		command     = 'rules',
+ *		accessLevel = 'all',
+ *		description = 'shows the rules',
+ *		help        = 'rules.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'rules_sign',
+ *		accessLevel = 'all',
+ *		description = 'sign the rules',
+ *		help        = 'rules.txt'
+ *	)
  */
 class RulesController {
 
@@ -24,6 +36,9 @@ class RulesController {
 	/** @Inject */
 	public $db;
 	
+	/** @Inject */
+	public $text;
+	
 	private $levels = Array('admin','mod','guild','member','all');
 
 	/**
@@ -31,6 +46,38 @@ class RulesController {
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "rules");
+	}
+	
+	/**
+	 * This command handler shows the rules
+	 *
+	 * @HandlesCommand("rules")
+	 * @Matches("/^rules$/i")
+	 */
+	public function rulesCommand($message, $channel, $sender, $sendto, $args) {
+		$rules = $this->getRulesFor($accessManager->getAccesslevelForCharacter($sender));
+		if(count($rules)) {
+			$msg = 'There are no rules set up for you.';
+		}
+		else {
+			$msg = '';
+			foreach($rules as $rule) {
+				$msg.=$this->formatRule($rule);
+			}
+			$msg.='<center>'.$this->text->make_chatcmd('Accept the rules','/tell <myname> rules_sign').'</center>'
+			$msg = $this->text->make_blob('Rules',$msg);
+		}
+		$sendto->reply($msg);
+	}
+	
+	/**
+	 * This command hanlder let someone sign the rules
+	 *
+	 * @HandlesCommand("rules_sign")
+	 * @Matches("/^rules_sign$/i")
+	 */
+	public function signCommand($message, $channel, $sender, $sendto, $args) {
+	
 	}
 	
 	// $accessManager->getAccessLevelForCharacter($name)
