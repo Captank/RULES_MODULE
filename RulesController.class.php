@@ -61,8 +61,9 @@ class RulesController {
 	 * @Matches("/^rules$/i")
 	 */
 	public function rulesCommand($message, $channel, $sender, $sendto, $args) {
-		$rules = $this->getRulesFor($accessManager->getAccesslevelForCharacter($sender));
-		if(count($rules)) {
+		$rules = $this->getRulesFor($this->accessManager->getAccesslevelForCharacter($sender));
+		var_dump($rules);
+		if(count($rules)==0) {
 			$msg = 'There are no rules set up for you.';
 		}
 		else {
@@ -84,7 +85,7 @@ class RulesController {
 	 */
 	public function signCommand($message, $channel, $sender, $sendto, $args) {
 		$sql = 'REPLACE INTO `rules_signs` (`player`,`signtime`) VALUES (?,?)';
-		$this->db->query($sql,$sender,time());
+		$this->db->exec($sql,$sender,time());
 		$sendto->reply("You signed the rules.");
 	}
 	
@@ -92,26 +93,29 @@ class RulesController {
 	 * This command handler shows the sign status of players
 	 *
 	 * @HandlesCommand("signed")
-	 * @Matches("/^signed all$/i")
-	 * @Matches("/^signed .+$/")
+	 * @Matches("/^signed (all)$/i")
+	 * @Matches("/^signed (.+)$/")
 	 */
 	 public function signedCommand($message, $channel, $sender, $sendto, $args) {
+	 	$args[1] = preg_split("|\\s+|",$args[1],-1,PREG_SPLIT_NO_EMPTY);
 		$msg = '';
-	 	if(count($args)==1){
-	 		if(strtolower($args[0])=='all') {
+	 	if(count($args[1])==1){
+	 		if(strtolower($args[1][0])=='all') {
 				// get online+channel list and run through as in else
 			}
 			else {
-				$state = $this->getSignedState($args[0]);
-				$msg = $args[0].$this->state[$state].'.';
+				$state = $this->getSignedState($args[1][0]);
+				$msg = $args[1][0].$this->states[$state].'.';
+				var_dump("x",$state);
 			}
 	 	}
 	 	else {
-	 		foreach($args as $player) {
+	 		foreach($args[1] as $player) {
 	 			$state = $this->getSignedState($player);
-	 			$msg .= $player.$this->state[$state].'<br>';
+	 			$msg .= $player.$this->states[$state].'<br>';
 	 		}
 	 		$msg = $this->text->make_blob('Sign states',$msg);
+				var_dump("y",$msg);
 	 	}
 	 	$sendto->reply($msg);
 	 }
@@ -137,7 +141,8 @@ class RulesController {
 	 * @return array returns an array of the the rules (db row object), if $accessLevel is invalid it returns an empty array
 	 */
 	public function getRulesFor($accessLevel) {
-		if(!$this->validateAccessLevel($accesslevel)) {
+		if(!$this->validateAccessLevel($accessLevel)) {
+			var_dump($accessLevel);
 			return Array();
 		}
 		$sql = 'SELECT `id`,`title`,`text`'.($full?',`lastchange`,`lastchangeby`,`admin`,`mod`,`guild`,`member`,`all`':'')." FROM `rules` WHERE `$accessLevel`=1 ORDER BY `id` ASC";
@@ -169,7 +174,7 @@ class RulesController {
 	 */
 	private function validateAccessLevel(&$accessLevel){
 		$accessLevel = strtolower($accessLevel);
-		if($accessLevel='superadmin'){
+		if($accessLevel=='superadmin'){
 			$accessLevel='admin';
 			return true;
 		}
@@ -217,22 +222,21 @@ class RulesController {
 		$player = ucfirst(strtolower($player));
 		if(false)//not a player
 			return -1;
-		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 1';
+		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
 		$time = $this->db->query($sql,$player);
-		$accessLevel = $accessManager->getAccesslevelForCharacter($player);
+		$accessLevel = $this->accessManager->getAccesslevelForCharacter($player);
 		$this->validateAccessLevel($accessLevel);
-		$sql = "SELECT COUNT(*) FROM `rules` WHERE `$accessLevel`=1 AND `lastchange`>?";
-		$count = $this->db->query($sql,$time);
-		if(false) {// count = 0 && $time = null
+		$sql = "SELECT COUNT(*) AS COUNT FROM `rules` WHERE `$accessLevel`=1 AND `lastchange`>=?";
+		$count = $this->db->query($sql,(count($time)?$time[0]->signtime:0));
+		$count = intval($count[0]->COUNT);
+		if($count==0 && count($time)==0) {// count = 0 && $time = null
 			return 3;
 		}
-		elseif (false) { //count > 0
-			if (false) {// time = null
-				return 0;
-			}
-			else {
-				return 1;
-			}
+		elseif($count==0) {
+			return 2;
+		}
+		elseif (count($time)==0) {
+			return 0;
 		}
 		else {
 			return 1;
