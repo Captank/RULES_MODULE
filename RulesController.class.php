@@ -64,7 +64,7 @@ class RulesController {
 			foreach($rules as $rule) {
 				$msg.=$this->formatRule($rule);
 			}
-			$msg.='<center>'.$this->text->make_chatcmd('Accept the rules','/tell <myname> rules_sign').'</center>'
+			$msg.='<center>'.$this->text->make_chatcmd('Accept the rules','/tell <myname> rules_sign').'</center>';
 			$msg = $this->text->make_blob('Rules',$msg);
 		}
 		$sendto->reply($msg);
