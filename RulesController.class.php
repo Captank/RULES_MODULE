@@ -18,6 +18,12 @@
  *		description = 'sign the rules',
  *		help        = 'rules.txt'
  *	)
+ *	@DefineCommand(
+ *		command     = 'signed',
+ *		accessLevel = 'mod',
+ *		description = 'checks if some one signed',
+ *		help        = 'rules.txt'
+ *	)
  */
 class RulesController {
 
@@ -40,7 +46,7 @@ class RulesController {
 	public $text;
 	
 	private $levels = Array('admin','mod','guild','member','all');
-
+	private $states = Array(-1=>' is not a player',0=>' has <red>not signed<end>',1=>' needs to <yellow>resign<end>',2=>' has <green>signed<end>',3=>' has <green>no rules to sign<end>');
 	/**
 	 * @Setup
 	 */
@@ -71,7 +77,7 @@ class RulesController {
 	}
 	
 	/**
-	 * This command hanlder let someone sign the rules
+	 * This command handler let someone sign the rules
 	 *
 	 * @HandlesCommand("rules_sign")
 	 * @Matches("/^rules_sign$/i")
@@ -82,7 +88,33 @@ class RulesController {
 		$sendto->reply("You signed the rules.");
 	}
 	
-	// $accessManager->getAccessLevelForCharacter($name)
+	/**
+	 * This command handler shows the sign status of players
+	 *
+	 * @HandlesCommand("signed")
+	 * @Matches("/^signed all$/i")
+	 * @Matches("/^signed .+$/")
+	 */
+	 public function signedCommand($message, $channel, $sender, $sendto, $args) {
+		$msg = '';
+	 	if(count($args)==1){
+	 		if(strtolower($args[0])=='all') {
+				// get online+channel list and run through as in else
+			}
+			else {
+				$state = $this->getSignedState($args[0]);
+				$msg = $args[0].$this->state[$state].'.';
+			}
+	 	}
+	 	else {
+	 		foreach($args as $player) {
+	 			$state = $this->getSignedState($player);
+	 			$msg .= $player.$this->state[$state].'<br>';
+	 		}
+	 		$msg = $this->text->make_blob('Sign states',$msg);
+	 	}
+	 	$sendto->reply($msg);
+	 }
 	
 	/**
 	 * This method returns all rules ids, titles and texts.
@@ -173,6 +205,38 @@ class RulesController {
 			$msg.=implode(', ',$access).'<br>';
 		}
 		return $msg.($short?preg_replace("~^(.{50}[^\\s]*)\\s.*$~","$1 ...",$rule->text):$rule->text).'<br><br><pagebreak>';
+	}
+	
+	/**
+	 * This method returns the signed state of a given player
+	 *
+	 * @param string $player - character name   this is a reference parameter
+	 * @return int - -1 if $player is not a player, 0 if he hasnt signed, 1 if he has to resign, 2 if is signed, 3 if he hasnt to sign any rules
+	 */
+	public function getSignedState(&$player) {
+		$player = ucfirst(strtolower($player));
+		if(false)//not a player
+			return -1;
+		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 1';
+		$time = $this->db->query($sql,$player);
+		$accessLevel = $accessManager->getAccesslevelForCharacter($player);
+		$this->validateAccessLevel($accessLevel);
+		$sql = "SELECT COUNT(*) FROM `rules` WHERE `$accessLevel`=1 AND `lastchange`>?";
+		$count = $this->db->query($sql,$time);
+		if(false) {// count = 0 && $time = null
+			return 3;
+		}
+		elseif (false) { //count > 0
+			if (false) {// time = null
+				return 0;
+			}
+			else {
+				return 1;
+			}
+		}
+		else {
+			return 1;
+		}
 	}
 }
 
