@@ -46,12 +46,38 @@ class RulesController {
 	public $text;
 	
 	private $levels = Array('admin','mod','guild','member','all');
-	private $states = Array(-1=>' does not exist.',0=>' has <red>not signed<end>.',1=>' needs to <yellow>resign<end>.',2=>' has <green>signed<end>',3=>' has <green>no rules to sign<end>.');
+	private $statesText = Array(-1=>' does not exist.',0=>' has <red>not signed<end>.',1=>' needs to <yellow>resign<end>.',2=>' has <green>signed<end>',3=>' has <green>no rules to sign<end>.');
+	
 	/**
 	 * @Setup
 	 */
 	public function setup() {
 		$this->db->loadSQLFile($this->moduleName, "rules");
+	}
+	
+	/**
+	 * @Event("logon")
+	 * @Description("Spam rules if not signed")
+	 */
+	public function spamRulesIfNeeded($eventObj) {
+		$accessLevel = $this->accessManager->getAccesslevelForCharacter($eventObj->sender);
+		if($this->accessManager->ACCESS_LEVELS[$accessLevel]>=7 || $this->accessManager->ACCESS_LEVELS[$accessLevel]==0)
+			return;
+
+		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
+		$time = $this->db->query($sql,$eventObj->sender);
+		$time = (count($time)?$time[0]->signtime:0);
+		
+		$rules = $this->getUnsignedRules($accessLevel,$time);
+		if(count($rules)>0) {
+			$msg = '';
+			foreach($rules as $rule) {
+				$msg.=$this->formatRule($rule);
+			}
+			$msg.='<center>'.$this->text->make_chatcmd('Accept the rules','/tell <myname> rules_sign').'</center>';
+			$msg = $this->text->make_blob('Rules',$msg);
+			$this->chatBot->sendTell('You neeed to sign the '.$msg, $eventObj->sender);
+		}
 	}
 	
 	/**
@@ -104,13 +130,13 @@ class RulesController {
 			}
 			else {
 				$state = $this->getSignedState($args[1][0]);
-				$msg = $args[1][0].$this->states[$state];
+				$msg = $args[1][0].$this->statesText[$state];
 			}
 	 	}
 	 	else {
 	 		foreach($args[1] as $player) {
 	 			$state = $this->getSignedState($player);
-	 			$msg .= $player.$this->states[$state].'<br>';
+	 			$msg .= $player.$this->statesText[$state].'<br>';
 	 		}
 	 		$msg = $this->text->make_blob('Sign states',$msg);
 	 	}
@@ -154,10 +180,10 @@ class RulesController {
 	 * @return array returns an array of the the rules (db row object), if $accessLevel is invalid it returns an empty array
 	 */	
 	public function getUnsignedRules($accessLevel,$signTime) {
-		if(!$this->validateAccessLevel($accesslevel)) {
+		if(!$this->validateAccessLevel($accessLevel)) {
 			return Array();
 		}
-		$sql = 'SELECT `id`,`title`,`text` FROM `rules` WHERE `$accessLevel`=1 AND `lastchange`>? ORDER BY `id` ASC';
+		$sql = "SELECT `id`,`title`,`text` FROM `rules` WHERE `$accessLevel`=1 AND `lastchange`>=? ORDER BY `id` ASC";
 		return $this->db->query($sql,$signTime);
 	}
 	
