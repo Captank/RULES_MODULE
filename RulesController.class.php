@@ -61,7 +61,33 @@ class RulesController {
 	 */
 	public function spamRulesIfNeeded($eventObj) {
 		$accessLevel = $this->accessManager->getAccesslevelForCharacter($eventObj->sender);
-		if($this->accessManager->ACCESS_LEVELS[$accessLevel]>=7 || $this->accessManager->ACCESS_LEVELS[$accessLevel]==0)
+		if(AccessManager::$ACCESS_LEVELS[$accessLevel]>=7 || AccessManager::$ACCESS_LEVELS[$accessLevel]==0) {
+			return;
+		}
+
+		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
+		$time = $this->db->query($sql,$eventObj->sender);
+		$time = (count($time)?$time[0]->signtime:0);
+		
+		$rules = $this->getUnsignedRules($accessLevel,$time);
+		if(count($rules)>0) {
+			$msg = '';
+			foreach($rules as $rule) {
+				$msg.=$this->formatRule($rule);
+			}
+			$msg.='<center>'.$this->text->make_chatcmd('Accept the rules','/tell <myname> rules_sign').'</center>';
+			$msg = $this->text->make_blob('Rules',$msg);
+			$this->chatBot->sendTell('You neeed to sign the '.$msg, $eventObj->sender);
+		}
+	}
+	
+	/**
+	 * @Event("joinPriv")
+	 * @Description("Spam rules if not signed")
+	 */
+	public function joinPrivateChannelMessageEvent($eventObj) {
+		$accessLevel = $this->accessManager->getAccesslevelForCharacter($eventObj->sender);
+		if(AccessManager::$ACCESS_LEVELS[$accessLevel]<7 || AccessManager::$ACCESS_LEVELS[$accessLevel]==0)
 			return;
 
 		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
