@@ -46,7 +46,7 @@ class RulesController {
 	public $text;
 	
 	private $levels = Array('admin','mod','guild','member','all');
-	private $states = Array(-1=>' is not a player',0=>' has <red>not signed<end>',1=>' needs to <yellow>resign<end>',2=>' has <green>signed<end>',3=>' has <green>no rules to sign<end>');
+	private $states = Array(-1=>' does not exist.',0=>' has <red>not signed<end>.',1=>' needs to <yellow>resign<end>.',2=>' has <green>signed<end>',3=>' has <green>no rules to sign<end>.');
 	/**
 	 * @Setup
 	 */
@@ -62,7 +62,6 @@ class RulesController {
 	 */
 	public function rulesCommand($message, $channel, $sender, $sendto, $args) {
 		$rules = $this->getRulesFor($this->accessManager->getAccesslevelForCharacter($sender));
-		var_dump($rules);
 		if(count($rules)==0) {
 			$msg = 'There are no rules set up for you.';
 		}
@@ -105,8 +104,7 @@ class RulesController {
 			}
 			else {
 				$state = $this->getSignedState($args[1][0]);
-				$msg = $args[1][0].$this->states[$state].'.';
-				var_dump("x",$state);
+				$msg = $args[1][0].$this->states[$state];
 			}
 	 	}
 	 	else {
@@ -115,7 +113,6 @@ class RulesController {
 	 			$msg .= $player.$this->states[$state].'<br>';
 	 		}
 	 		$msg = $this->text->make_blob('Sign states',$msg);
-				var_dump("y",$msg);
 	 	}
 	 	$sendto->reply($msg);
 	 }
@@ -142,7 +139,6 @@ class RulesController {
 	 */
 	public function getRulesFor($accessLevel) {
 		if(!$this->validateAccessLevel($accessLevel)) {
-			var_dump($accessLevel);
 			return Array();
 		}
 		$sql = 'SELECT `id`,`title`,`text`'.($full?',`lastchange`,`lastchangeby`,`admin`,`mod`,`guild`,`member`,`all`':'')." FROM `rules` WHERE `$accessLevel`=1 ORDER BY `id` ASC";
@@ -220,7 +216,7 @@ class RulesController {
 	 */
 	public function getSignedState(&$player) {
 		$player = ucfirst(strtolower($player));
-		if(false)//not a player
+		if(!$this->chatBot->get_uid($player))
 			return -1;
 		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
 		$time = $this->db->query($sql,$player);
