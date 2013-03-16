@@ -22,7 +22,13 @@
  *		command     = 'signed',
  *		accessLevel = 'mod',
  *		description = 'checks if some one signed',
- *		help        = 'rules.txt'
+ *		help        = 'rulesadmin.txt'
+ *	)
+ *	@DefineCommand(
+ *		command     = 'rulesadmin',
+ *		accessLevel = 'mod',
+ *		description = 'administrating the rules',
+ *		help        = 'rulesadmin.txt'
  *	)
  */
 class RulesController {
@@ -65,11 +71,7 @@ class RulesController {
 			return;
 		}
 
-		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
-		$time = $this->db->query($sql,$eventObj->sender);
-		$time = (count($time)?$time[0]->signtime:0);
-		
-		$rules = $this->getUnsignedRules($accessLevel,$time);
+		$rules = $this->getUnsignedRules($eventObj->sender);
 		if(count($rules)>0) {
 			$msg = '';
 			foreach($rules as $rule) {
@@ -86,13 +88,7 @@ class RulesController {
 	 * @Description("Spam rules if not signed")
 	 */
 	public function joinPrivateChannelMessageEvent($eventObj) {
-		$accessLevel = $this->accessManager->getAccesslevelForCharacter($eventObj->sender);
-
-		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
-		$time = $this->db->query($sql,$eventObj->sender);
-		$time = (count($time)?$time[0]->signtime:0);
-		
-		$rules = $this->getUnsignedRules($accessLevel,$time);
+		$rules = $this->getUnsignedRules($eventObj->sender);
 		if(count($rules)>0) {
 			$msg = '';
 			foreach($rules as $rule) {
@@ -166,6 +162,61 @@ class RulesController {
 	 	}
 	 	$sendto->reply($msg);
 	 }
+	 
+	 /**
+	 * This command handler shows details for the rules
+	 *
+	 * @HandlesCommand("rulesadmin")
+	 * @Matches("/^rulesadmin show$/i")
+	 * @Matches("/^rulesadmin show ([a-z]+)$/i")
+	 * @Matches("/^rulesadmin show ([a-z]+) (long)$/i")
+	 */
+	public function rulesAdminShowCommand($message, $channel, $sender, $sendto, $args) {
+		$rules = Array();
+		$long = false;
+		$count = count($args);
+		switch($count) {
+			case 1:
+					$rules = $this->getRules(true);
+				break;
+			case 2:
+					$args[1] = strtolower($args[1]);
+					if($args[1]=='long') {
+						$long = true;
+						$rules = $this->getRules(true);
+					}
+					elseif(in_array($args[1],$this->levels)) {
+						$rules = $this->getRulesFor($args[1],true);
+					}
+					else {
+						echo "QQ\n";
+						return;
+					}
+				break;
+			case 3:
+					$args[1] = strtolower($args[1]);
+					if(in_array($args[1],$this->levels)) {
+						$rules = $this->getRulesFor($args[1],true);
+						$long = true;
+					}
+					else {
+						echo "QQ\n";
+						return;
+					}
+				break;
+		}
+		$msg = "";
+		if(count($rules)==0){
+			$msg = 'There are no rules set up for you.';
+		}
+		else {
+			foreach($rules as $rule) {
+				$msg.=$this->formatRule($rule,true,$long);
+			}
+			$msg=$this->text->make_blob("Rules info",$msg);
+		}
+		$sendto->reply($msg);
+	}
 	
 	/**
 	 * This method returns all rules ids, titles and texts.
@@ -187,7 +238,7 @@ class RulesController {
 	 * @param string $accessLevel - given group, can be superadmin, admin, mod, guild, member, all
 	 * @return array returns an array of the the rules (db row object), if $accessLevel is invalid it returns an empty array
 	 */
-	public function getRulesFor($accessLevel) {
+	public function getRulesFor($accessLevel,$full=false) {
 		if(!$this->validateAccessLevel($accessLevel)) {
 			return Array();
 		}
@@ -203,12 +254,29 @@ class RulesController {
 	 * @param int $signTime - the specific time
 	 * @return array returns an array of the the rules (db row object), if $accessLevel is invalid it returns an empty array
 	 */	
-	public function getUnsignedRules($accessLevel,$signTime) {
+	public function getUnsignedRulesFor($accessLevel,$signTime) {
 		if(!$this->validateAccessLevel($accessLevel)) {
 			return Array();
 		}
 		$sql = "SELECT `id`,`title`,`text` FROM `rules` WHERE `$accessLevel`=1 AND `lastchange`>=? ORDER BY `id` ASC";
 		return $this->db->query($sql,$signTime);
+	}
+	
+	/**
+	 * This method returns all rules ids, titles and texts, which
+	 * are meant for aplayer
+	 *
+	 * @param string $player - name of the character
+	 * @return array returns an array of the the rules (db row object), if $accessLevel is invalid it returns an empty array
+	 */	
+	public function getUnsignedRules($player) {
+		$accessLevel = $this->accessManager->getAccesslevelForCharacter($player);
+
+		$sql = 'SELECT `signtime` FROM `rules_signs` WHERE `player`=? LIMIT 0,1';
+		$time = $this->db->query($sql,$player);
+		$time = (count($time)?$time[0]->signtime:0);
+		
+		return $this->getUnsignedRulesFor($accessLevel,$time);
 	}
 	
 	/**
@@ -218,7 +286,7 @@ class RulesController {
 	 * @param string &$accessLevel - access level value that has to be validated
 	 * @return bool - returns true if the given access level is valid
 	 */
-	private function validateAccessLevel(&$accessLevel){
+	private function validateAccessLevel(&$accessLevel) {
 		$accessLevel = strtolower($accessLevel);
 		if($accessLevel=='superadmin'){
 			$accessLevel='admin';
@@ -235,27 +303,27 @@ class RulesController {
 	 * @param bool $short - if set, the rule text will be shortened
 	 * @return string - the AOML formated text
 	 */
-	public function formatRule($rule,$full=false,$short=false){
+	public function formatRule($rule,$full=false,$long=false) {
 		$msg = "<highlight>#{$rule->id} {$rule->title}<end>";
-		if($long){
+		if($full){
 			$msg.=' '.date('c',$rule->lastchange)." by {$rule->lastchangeby}";
 		}
 		$msg.="<br>";
-		if($long){
+		if($full){
 			$access = Array();
 			if($rule->admin)
-				$access[] = 'admins';
+				$access[] = 'admin';
 			if($rule->mod)
-				$access[] = 'moderators';
+				$access[] = 'mod';
 			if($rule->guild)
-				$access[] = 'guild members';
+				$access[] = 'guild';
 			if($rule->member)
-				$access[] = 'members';
+				$access[] = 'member';
 			if($rule->all)
-				$access[] = 'all other';
+				$access[] = 'all';
 			$msg.=implode(', ',$access).'<br>';
 		}
-		return $msg.($short?preg_replace("~^(.{50}[^\\s]*)\\s.*$~","$1 ...",$rule->text):$rule->text).'<br><br><pagebreak>';
+		return $msg.($long?$rule->text:preg_replace("~^(.{10}[^\\s]*)\\s.*$~","$1 ...",$rule->text)).'<br><br><pagebreak>';
 	}
 	
 	/**
