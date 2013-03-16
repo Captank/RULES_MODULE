@@ -163,7 +163,7 @@ class RulesController {
 	 	$sendto->reply($msg);
 	 }
 	 
-	 /**
+	/**
 	 * This command handler shows details for the rules
 	 *
 	 * @HandlesCommand("rulesadmin")
@@ -216,6 +216,24 @@ class RulesController {
 			$msg=$this->text->make_blob("Rules info",$msg);
 		}
 		$sendto->reply($msg);
+	}
+	
+	/**
+	 * This command handler adds rules
+	 *
+	 * @HandlesCommand("rulesadmin")
+	 * @Matches("/^rulesadmin add ([a-z]+) (.+)$/i")
+	 * @Matches("/^rulesadmin add '([^']+)' (.+)$/i")
+	 * @Matches('/^rulesadmin add "([^"]+)" (.+)$/i')
+	 */
+	public function rulesAdminAddCommand($message, $channel, $sender, $sendto, $args) {
+		var_dump($args); //lastInsertId
+		$sql = "INSERT INTO `rules` (`title`,`text`,`lastchange`,`lastchangeby`) VALUES (?,?,?,?);";
+		$this->db->exec($sql,$args[1],$args[2],time(),$sender);
+		$id = $this->db->lastInsertId();
+		$msg = '<br><center>'.$this->text->make_chatcmd('edit groups',"/tell <myname> rulesadmin edit groups $id").'</center>';
+		$msg = $this->text->make_blob("edit groups",$msg);
+		$sendto->reply("The rule '<highlight>{$args[1]}<end>' was added as #$id. $msg");
 	}
 	
 	/**
@@ -321,7 +339,7 @@ class RulesController {
 				$access[] = 'member';
 			if($rule->all)
 				$access[] = 'all';
-			$msg.=implode(', ',$access).'<br>';
+			$msg.=implode(', ',$access).' '.$this->text->make_chatcmd('edit',"/tell <myname> rulesadmin edit groups {$rule->id}").'<br>';
 		}
 		return $msg.($long?$rule->text:preg_replace("~^(.{10}[^\\s]*)\\s.*$~","$1 ...",$rule->text)).'<br><br><pagebreak>';
 	}
