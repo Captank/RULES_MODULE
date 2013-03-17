@@ -146,7 +146,14 @@ class RulesController {
 		$msg = '';
 	 	if(count($args[1])==1){
 	 		if(strtolower($args[1][0])=='all') {
-				// get online+channel list and run through as in else
+				$sql = 'SELECT `name` FROM `online` ORDER BY `name` ASC';
+				$olist = $this->db->query($sql);
+				
+				foreach($olist as $player) {
+		 			$state = $this->getSignedState($player->name);
+		 			$msg .= $player->name.$this->statesText[$state].'<br>';
+		 		}
+		 		$msg = $this->text->make_blob('Sign states',$msg);
 			}
 			else {
 				$state = $this->getSignedState($args[1][0]);
@@ -227,13 +234,60 @@ class RulesController {
 	 * @Matches('/^rulesadmin add "([^"]+)" (.+)$/i')
 	 */
 	public function rulesAdminAddCommand($message, $channel, $sender, $sendto, $args) {
-		var_dump($args); //lastInsertId
 		$sql = "INSERT INTO `rules` (`title`,`text`,`lastchange`,`lastchangeby`) VALUES (?,?,?,?);";
 		$this->db->exec($sql,$args[1],$args[2],time(),$sender);
 		$id = $this->db->lastInsertId();
 		$msg = '<br><center>'.$this->text->make_chatcmd('edit groups',"/tell <myname> rulesadmin edit groups $id").'</center>';
 		$msg = $this->text->make_blob("edit groups",$msg);
 		$sendto->reply("The rule '<highlight>{$args[1]}<end>' was added as #$id. $msg");
+	}
+	
+	/**
+	 * This command handler is for editing rules
+	 *
+	 * @HandlesCommand("rulesadmin")
+	 * @Matches("/^rulesadmin edit (\d+) (groups)$/i")
+	 * @Matches("/^rulesadmin edit (\d+) (groups) (admin|mod|guild|member|all) (1|0)$/i")
+	 * @Matches("/^rulesadmin edit (\d+) (title|text) (.+)$/i")
+	 */
+	public function rulesAdminEditCommand($message, $channel, $sender, $sendto, $args) {
+		$msg = '';
+		$sql = 'SELECT `title`,`admin`,`mod`,`guild`,`member`,`all` FROM `rules` WHERE `id`=? LIMIT 1';
+		$rule = $this->db->query($sql,$args[1]);
+		if(count($rule)==0) {
+			$msg = "Rule #{$args[1]} does not exist.";
+		}
+		else {
+			$args[2] = strtolower($args[2]);
+			if($args[2]=='groups') {
+						if(count($args)==3) {
+							$msg = 'Title: <highlight>'.$rule[0]->title.'<end><br>';
+							foreach($this->levels as $level) {
+								$msg.="<tab><highlight>$level<end> is ";
+								if($rule[0]->$level) {
+									$msg.='<green>enabled<end> ';
+								}
+								else {
+									$msg.='<red>disabled<end>';
+								}
+								$msg.='<br><tab><tab>'.$this->text->make_chatcmd('enable',"/tell <myname> rulesadmin edit {$args[1]} groups $level 1").'<tab>'.$this->text->make_chatcmd('disable',"/tell <myname> rulesadmin edit {$args[1]} groups $level 0").'<br><br>';
+							}
+							$msg = $this->text->make_blob("Rule #{$args[1]} groups",$msg);
+						}
+						else {
+							$sql = "UPDATE `rules` SET `lastchange`=?,`lastchangeby`=?,`{$args[3]}`=? WHERE `id`=?";
+							$this->db->exec($sql,time(),$sender,$args[4],$args[1]);
+							$msg = "Rule #{$args[1]} updated.";
+						}
+					break;
+			}
+			else {
+				$sql = "UPDATE `rules` SET `lastchange`=?,`lastchangeby`=?,`{$args[2]}`=? WHERE `id`=?";
+				$this->db->exec($sql,time(),$sender,$args[3],$args[1]);
+				$msg = "Rule #{$args[1]} updated.";
+			}
+		}
+		$sendto->reply($msg);
 	}
 	
 	/**
