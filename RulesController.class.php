@@ -219,6 +219,9 @@ class RulesController {
 						$long = true;
 						$rules = $this->getRules(true);
 					}
+					elseif($args[1]=='inactive') {
+						$rules = $this->getInactiveRules();
+					}
 					elseif(in_array($args[1],$this->levels)) {
 						$rules = $this->getRulesFor($args[1],true);
 					}
@@ -227,10 +230,13 @@ class RulesController {
 					}
 				break;
 			case 3:
+					$long = true;
 					$args[1] = strtolower($args[1]);
-					if(in_array($args[1],$this->levels)) {
+					if($args[1]=='inactive') {
+						$rules = $this->getInactiveRules();
+					}
+					elseif(in_array($args[1],$this->levels)) {
 						$rules = $this->getRulesFor($args[1],true);
-						$long = true;
 					}
 					else {
 						$msg = "Error! '{$args[1]}' is not a valid group.";
@@ -340,6 +346,15 @@ class RulesController {
 	 */
 	public function getRules($full=false) {
 		$sql = 'SELECT `id`,`title`,`text`'.($full?',`lastchange`,`lastchangeby`,`admin`,`mod`,`guild`,`member`,`all`':'').' FROM `rules` ORDER BY `id` ASC';
+		return $this->db->query($sql);
+	}
+	
+	public function getInactiveRules() {
+		$sql = Array();
+		foreach($this->levels as $level) {
+			$sql[] = "`$level`=0";
+		}
+		$sql = 'SELECT `id`,`title`,`text`,`lastchange`,`lastchangeby`,`admin`,`mod`,`guild`,`member`,`all` FROM `rules` WHERE '.implode(', ',$sql).' ORDER BY `id` ASC';
 		return $this->db->query($sql);
 	}
 	

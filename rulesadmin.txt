@@ -1,6 +1,6 @@
 To show rules:
 <highlight><tab><symbol>rulesadmin show ['group'] [long]<end>
-<tab><tab>Note: available groups are admin, mod, guild, member, all
+<tab><tab>Note: available groups are admin, mod, guild, member and all or inactive
 
 To add rules:
 <highlight><tab><symbol>rulesadmin add 'title' 'text'<end>
@@ -23,7 +23,7 @@ Note: By rule id is always #id meant.
 <header2>Examples:<end>
 
 Shows all rules related to a 'normal' guild member
-<highlight><tab><symbol>rulesadmin show guild<end>
+<highlight><tab><symbol>rulesadmin show guild long<end>
 
 Adding a rules the with title 'Potatos are awesome'
 <highlight><tab><symbol>rulesadmin add 'Potatos are awesome' Do not harrass or molest potatos, they are awesome.<end>
