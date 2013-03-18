@@ -207,6 +207,25 @@ class RulesController {
 	}
 	
 	/**
+	 * This command handler shows a specific rule
+	 *
+	 * @HandlesCommand("rules")
+	 * @Matches("/^rules search (.+)$/i")
+	 */
+	public function rulesSearchCommand($message, $channel, $sender, $sendto, $args) {
+		$args[1] = preg_split("|\\s+|", strtolower($args[1]), -1, PREG_SPLIT_NO_EMPTY);
+		$words = Array();
+		foreach($args[1] as $word) {
+			$words[$word] = true;
+		}
+		$sql = Array();
+		$data = Array();
+		foreach($words as $word => $unused) {
+			//$sql[] = "`tilte` LIKE ?"
+		}
+	}
+	
+	/**
 	 * This command handler shows the sign status of players
 	 *
 	 * @HandlesCommand("signed")
@@ -214,7 +233,7 @@ class RulesController {
 	 * @Matches("/^signed (.+)$/")
 	 */
 	 public function signedCommand($message, $channel, $sender, $sendto, $args) {
-	 	$args[1] = preg_split("|\\s+|",$args[1], -1, PREG_SPLIT_NO_EMPTY);
+	 	$args[1] = preg_split("|\\s+|", $args[1], -1, PREG_SPLIT_NO_EMPTY);
 		$msg = '';
 	 	if(count($args[1]) == 1 ) {
 	 		if(strtolower($args[1][0]) == 'all') {
