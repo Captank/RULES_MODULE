@@ -13,12 +13,6 @@
  *		help        = 'rules.txt'
  *	)
  *	@DefineCommand(
- *		command     = 'rules_sign',
- *		accessLevel = 'all',
- *		description = 'sign the rules',
- *		help        = 'rules.txt'
- *	)
- *	@DefineCommand(
  *		command     = 'signed',
  *		accessLevel = 'mod',
  *		description = 'checks if some one signed',
@@ -142,7 +136,7 @@ class RulesController {
 			foreach($rules as $rule) {
 				$msg .= $this->formatRule($rule);
 			}
-			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules_sign').'</center>';
+			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
 		}
 		$sendto->reply($msg);
@@ -151,13 +145,65 @@ class RulesController {
 	/**
 	 * This command handler let someone sign the rules
 	 *
-	 * @HandlesCommand("rules_sign")
-	 * @Matches("/^rules_sign$/i")
+	 * @HandlesCommand("rules")
+	 * @Matches("/^rules sign$/i")
 	 */
 	public function signCommand($message, $channel, $sender, $sendto, $args) {
 		$sql = 'REPLACE INTO `rules_signs` (`player`, `signtime`) VALUES (?, ?);';
 		$this->db->exec($sql, $sender, time());
 		$sendto->reply("You signed the rules.");
+	}
+	
+	/**
+	 * This command handler shows a specific rule
+	 *
+	 * @HandlesCommand("rules")
+	 * @Matches("/^rules (\d+)$/i")
+	 */
+	public function rulesSpecificCommand($message, $channel, $sender, $sendto, $args) {
+		$accessLevel = $this->accessManager->getAccesslevelForCharacter($sender);
+		if(!$this->validateAccessLevel($accessLevel)) {
+			$msg = 'Error! Can not get valid access level';
+		}
+		else {
+			$sql = 'SELECT `id`, `title`, `text`, `admin`, `mod`, `guild`, `member`, `all` FROM `rules` WHERE `id` = ? LIMIT 1';
+			$rule = $this->db->query($sql, $args[1]);
+			if(count($rule) == 0) {
+				$msg = "Error! Rule #{$args[1]} does not exist!";
+			}
+			else {
+				$msg = false;
+				switch($accessLevel) {
+					case 'admin':
+					case 'mod':
+							$msg = $this->formatRule($rule[0], true, true);
+							$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
+						break;
+					case 'guild':
+							if($rule[0]->guild == 1) {
+								$msg = $this->formatRule($rule[0], false, true);
+								$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
+							}
+						break;
+					case 'member':
+							if($rule[0]->member == 1) {
+								$msg = $this->formatRule($rule[0], false, true);
+								$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
+							}
+						break;
+					case 'all':
+							if($rule[0]->all == 1) {
+								$msg = $this->formatRule($rule[0], false, true);
+								$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
+							}
+						break;
+				}
+				if(!$msg) {
+					$msg = "Rule #{$args[1]} is not related to you.";
+				}
+			}
+		}
+		$sendto->reply($msg);
 	}
 	
 	/**
@@ -500,5 +546,3 @@ class RulesController {
 		}
 	}
 }
-
-?>
