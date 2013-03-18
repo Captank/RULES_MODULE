@@ -46,6 +46,9 @@ class RulesController {
 	public $accessManager;
 	
 	/** @Inject */
+	public $settingsManager;
+	
+	/** @Inject */
 	public $db;
 	
 	/** @Inject */
@@ -53,6 +56,15 @@ class RulesController {
 	
 	private $levels = Array('admin','mod','guild','member','all');
 	private $statesText = Array(-1=>' does not exist.',0=>' has <red>not signed<end>.',1=>' needs to <yellow>resign<end>.',2=>' has <green>signed<end>',3=>' has <green>no rules to sign<end>.');
+	
+	/**
+	 * @Setting("maxdays")
+	 * @Description("Days until inactive rules get deleted")
+	 * @Visibility("edit")
+	 * @Type("number")
+	 * @Options("5;10;20;30;40")
+	 */
+	public $defaultMaxDays = "30";
 	
 	/**
 	 * @Setup
@@ -63,9 +75,9 @@ class RulesController {
 	
 	/**
 	 * @Event("logon")
-	 * @Description("Spam rules if not signed")
+	 * @Description("Spam rules if not signed on logon")
 	 */
-	public function spamRulesIfNeeded($eventObj) {
+	public function spamRulesIfNeededLogon($eventObj) {
 		$accessLevel = $this->accessManager->getAccesslevelForCharacter($eventObj->sender);
 		if(AccessManager::$ACCESS_LEVELS[$accessLevel]>=7 || AccessManager::$ACCESS_LEVELS[$accessLevel]==0) {
 			return;
@@ -85,9 +97,9 @@ class RulesController {
 	
 	/**
 	 * @Event("joinPriv")
-	 * @Description("Spam rules if not signed")
+	 * @Description("Spam rules if not signed on private channel join")
 	 */
-	public function joinPrivateChannelMessageEvent($eventObj) {
+	public function spamRulesIfNeededPrivJoin($eventObj) {
 		$rules = $this->getUnsignedRules($eventObj->sender);
 		if(count($rules)>0) {
 			$msg = '';
@@ -98,6 +110,20 @@ class RulesController {
 			$msg = $this->text->make_blob('Rules',$msg);
 			$this->chatBot->sendTell('You neeed to sign the '.$msg, $eventObj->sender);
 		}
+	}
+
+	/**
+	 * @Event("24hrs")
+	 * @Description("Deletes long term inactive rules")
+	 */
+	public function deleteLongTimeInactiveRules() {
+		$sql = Array();
+		foreach($this->levels as $level) {
+			$sql[] = "`$level`=0";
+		}
+		$sql = 'DELETE FROM `rules` WHERE `lastchange`<?,'.implode(', ',$sql);
+		$time = time()-24*60*60*intval($this->settingManager->get("maxdays"));
+		$this->db->exec($sql,$time);
 	}
 	
 	/**
@@ -288,6 +314,22 @@ class RulesController {
 			}
 		}
 		$sendto->reply($msg);
+	}
+	
+	/**
+	 * This command handler is for removing (setting inactive) rules
+	 *
+	 * @HandlesCommand("rulesadmin")
+	 * @Matches("/^rulesadmin rem (\d+)$/i")
+	 */
+	public function rulesAdminRemCommand($message, $channel, $sender, $sendto, $args) {
+		$sql = Array();
+		foreach($this->levels as $level) {
+			$sql[] = "`$level`=0";
+		}
+		$sql = 'UPDATE `rules` SET '.implode(', ',$sql).',`lastchange`=?,`lastchangeby`=? WHERE `id`=?';
+		$this->db->exec($sql,time(),$sender,$args[1]);
+		$sendto->reply("Rule #{$args[1]} set to inactive.");
 	}
 	
 	/**
