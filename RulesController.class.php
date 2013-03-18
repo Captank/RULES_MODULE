@@ -46,7 +46,7 @@ class RulesController {
 	public $accessManager;
 	
 	/** @Inject */
-	public $settingsManager;
+	public $settingManager;
 	
 	/** @Inject */
 	public $db;
@@ -121,7 +121,7 @@ class RulesController {
 		foreach($this->groups as $group) {
 			$sql[] = "`$group` = 0";
 		}
-		$sql = 'DELETE FROM `rules` WHERE `lastchange` < ?, '.implode(', ',$sql);
+		$sql = 'DELETE FROM `rules` WHERE `lastchange` <= ? AND '.implode(' AND ',$sql).';';
 		$time = time()-24*60*60*intval($this->settingManager->get("maxdays"));
 		$this->db->exec($sql, $time);
 	}
@@ -155,8 +155,8 @@ class RulesController {
 	 * @Matches("/^rules_sign$/i")
 	 */
 	public function signCommand($message, $channel, $sender, $sendto, $args) {
-		$sql = 'REPLACE INTO `rules_signs` (`player`, `signtime`) VALUES (?, ?)';
-		$this->db->exec($sql, $sender,time());
+		$sql = 'REPLACE INTO `rules_signs` (`player`, `signtime`) VALUES (?, ?);';
+		$this->db->exec($sql, $sender, time());
 		$sendto->reply("You signed the rules.");
 	}
 	
@@ -172,7 +172,7 @@ class RulesController {
 		$msg = '';
 	 	if(count($args[1]) == 1 ) {
 	 		if(strtolower($args[1][0]) == 'all') {
-				$sql = 'SELECT `name` FROM `online` ORDER BY `name` ASC';
+				$sql = 'SELECT `name` FROM `online` ORDER BY `name` ASC;';
 				$olist = $this->db->query($sql);
 				
 				foreach($olist as $player) {
@@ -360,7 +360,7 @@ class RulesController {
 		foreach($this->groups as $group) {
 			$sql[] = "`$group` = 0";
 		}
-		$sql = 'SELECT `id`, `title`, `text`, `lastchange`, `lastchangeby`, `admin`, `mod`, `guild`, `member`, `all` FROM `rules` WHERE '.implode(', ',$sql).' ORDER BY `id` ASC';
+		$sql = 'SELECT `id`, `title`, `text`, `lastchange`, `lastchangeby`, `admin`, `mod`, `guild`, `member`, `all` FROM `rules` WHERE '.implode(' AND ',$sql).' ORDER BY `id` ASC';
 		return $this->db->query($sql);
 	}
 	
@@ -444,12 +444,23 @@ class RulesController {
 		$msg .= "<br>";
 		if($full) {
 			$access = Array();
-			foreach($this->groups as $group) {
-				if($rule->$goup) {
-					$access[] = $group;
-				}
+			if($rule->admin) {
+				$access[] = 'admin';
 			}
-			if(count($acces)) {
+			if($rule->mod) {
+				$access[] = 'mod';
+			}
+			if($rule->guild) {
+				$access[] = 'guild';
+			}
+			if($rule->member) {
+				$access[] = 'member';
+			}
+			if($rule->all) {
+				$access[] = 'all';
+			}
+
+			if(count($access) == 0) {
 				$access[] = '<yellow>INACTIVE<end>';
 			}
 			$msg .= implode(', ', $access).' '.$this->text->make_chatcmd('edit', "/tell <myname> rulesadmin edit groups {$rule->id}").'<br>';
