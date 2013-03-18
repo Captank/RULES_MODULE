@@ -207,6 +207,7 @@ class RulesController {
 	public function rulesAdminShowCommand($message, $channel, $sender, $sendto, $args) {
 		$rules = Array();
 		$long = false;
+		$msg = "";
 		$count = count($args);
 		switch($count) {
 			case 1:
@@ -222,8 +223,7 @@ class RulesController {
 						$rules = $this->getRulesFor($args[1],true);
 					}
 					else {
-						echo "QQ\n";
-						return;
+						$msg = "Error! '{$args[1]}' is not a valid group.";
 					}
 				break;
 			case 3:
@@ -233,12 +233,10 @@ class RulesController {
 						$long = true;
 					}
 					else {
-						echo "QQ\n";
-						return;
+						$msg = "Error! '{$args[1]}' is not a valid group.";
 					}
 				break;
 		}
-		$msg = "";
 		if(count($rules)==0){
 			$msg = 'There are no rules set up for you.';
 		}
