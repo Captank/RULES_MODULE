@@ -284,7 +284,6 @@ class RulesController {
 	 * This command handler shows the sign status of players
 	 *
 	 * @HandlesCommand("signed")
-	 * @Matches("/^signed (all)$/i")
 	 * @Matches("/^signed (.+)$/")
 	 */
 	 public function signedCommand($message, $channel, $sender, $sendto, $args) {
