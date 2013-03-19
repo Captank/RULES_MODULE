@@ -213,6 +213,10 @@ class RulesController {
 	 * @Matches("/^rules search (.+)$/i")
 	 */
 	public function rulesSearchCommand($message, $channel, $sender, $sendto, $args) {
+		$accessLevel = $this->accessManager->getAccesslevelForCharacter($sender);
+		if(!$this->validateAccessLevel($accessLevel)) {
+			$msg = 'Error! Can not get valid access level';
+		}
 		$args[1] = preg_split("|\\s+|", strtolower($args[1]), -1, PREG_SPLIT_NO_EMPTY);
 		$words = Array();
 		foreach($args[1] as $word) {
@@ -221,8 +225,59 @@ class RulesController {
 		$sql = Array();
 		$data = Array();
 		foreach($words as $word => $unused) {
-			//$sql[] = "`tilte` LIKE ?"
+			$sql[] = "`tilte` LIKE ? OR `text` LIKE ?";
+			$data[] = $word;
+			$data[] = $word;
 		}
+		$sql = 'SELECT `id`,`title`,`text`, `admin`, `mod`, `guild`, `member`, `all` WHERE '.implode(' OR ', $sql);
+		$rules = $this->db->query($sql);
+		if(count($rules) == 0) {
+			$msg = 'No rules found.';
+		}
+		else {
+			$msg = '';
+			$c = 0;
+			switch($accessLevel) {
+				case 'admin':
+				case 'mod':
+						$c = count($rules);
+						foreach($rules as $rule) {
+							$msg .= $this->formatRule($rule, true);
+						}
+					break;
+				case 'guild':
+						foreach($rules as $rule) {
+							if($rule->guild) {
+								$msg .= $this->formatRule($rule);
+								$c++;
+							}
+						}
+					break;
+				case 'member':
+						foreach($rules as $rule) {
+							if($rule->member) {
+								$msg .= $this->formatRule($rule);
+								$c++;
+							}
+						}
+					break;
+				case 'all':
+						foreach($rules as $rule) {
+							if($rule->all) {
+								$msg .= $this->formatRule($rule);
+								$c++;
+							}
+						}
+					break;
+			}
+			if($c == 0) {
+				$msg = 'No rules found.';
+			}
+			else {
+				$msg = $this->text->make_blob($c.' rule(s) found.', $msg);
+			}
+		}
+		$sendto->reply($msg);
 	}
 	
 	/**
