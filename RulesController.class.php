@@ -365,7 +365,7 @@ class RulesController {
 		$sql = "INSERT INTO `rules` (`title`, `text`, `lastchange`, `lastchangeby`) VALUES (?, ?, ?, ?);";
 		$this->db->exec($sql, $args[1], $args[2], time(), $sender);
 		$id = $this->db->lastInsertId();
-		$msg = '<br><center>'.$this->text->make_chatcmd('edit groups', "/tell <myname> rulesadmin edit groups $id").'</center>';
+		$msg = '<br><center>'.$this->text->make_chatcmd('edit groups', "/tell <myname> rulesadmin edit $id groups").'</center>';
 		$msg = $this->text->make_blob("edit groups", $msg);
 		$sendto->reply("The rule '<highlight>{$args[1]}<end>' was added as #$id. $msg");
 	}
