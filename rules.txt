@@ -1,4 +1,18 @@
 To read the rules
 <highlight><tab><symbol>rules<end>
 
+To read a specifc rule
+<highlight><tab><symbol>rules 'id'<end>
+
+To search for rules
+<highlight><tab><symbol>rules search 'words'<end>
+
 Note: The link to sign the rules is at the bottom of the rules.
+
+<header2>Examples:<end>
+
+Shows rule #2
+<highlight><tab><symbol>rules 2<end>
+
+Search for rules with the words 'pvp' or 'player'
+<highlight><tab><symbol>rules search pvp player<end>
