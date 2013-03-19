@@ -183,19 +183,9 @@ class RulesController {
 							$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
 						break;
 					case 'guild':
-							if($rule[0]->guild == 1) {
-								$msg = $this->formatRule($rule[0], false, true);
-								$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
-							}
-						break;
 					case 'member':
-							if($rule[0]->member == 1) {
-								$msg = $this->formatRule($rule[0], false, true);
-								$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
-							}
-						break;
 					case 'all':
-							if($rule[0]->all == 1) {
+							if($rule[0]->$accesLevel == 1) {
 								$msg = $this->formatRule($rule[0], false, true);
 								$msg = $this->text->make_blob("Rule #{$args[1]}", $msg);
 							}
@@ -228,12 +218,12 @@ class RulesController {
 		$sql = Array();
 		$data = Array();
 		foreach($words as $word => $unused) {
-			$sql[] = "`tilte` LIKE ? OR `text` LIKE ?";
-			$data[] = $word;
-			$data[] = $word;
+			$sql[] = "(`title` LIKE ?) OR (`text` LIKE ?)";
+			$data[] = "%$word%";
+			$data[] = "%$word%";
 		}
-		$sql = 'SELECT `id`,`title`,`text`, `admin`, `mod`, `guild`, `member`, `all` WHERE '.implode(' OR ', $sql);
-		$rules = $this->db->query($sql);
+		$sql = 'SELECT `id`, `title`, `text`, `admin`, `mod`, `guild`, `member`, `all`, `lastchange`, `lastchangeby` FROM `rules` WHERE '.implode(' OR ', $sql);
+		$rules = $this->db->query($sql,$data);
 		if(count($rules) == 0) {
 			$msg = 'No rules found.';
 		}
@@ -249,24 +239,10 @@ class RulesController {
 						}
 					break;
 				case 'guild':
-						foreach($rules as $rule) {
-							if($rule->guild) {
-								$msg .= $this->formatRule($rule);
-								$c++;
-							}
-						}
-					break;
 				case 'member':
-						foreach($rules as $rule) {
-							if($rule->member) {
-								$msg .= $this->formatRule($rule);
-								$c++;
-							}
-						}
-					break;
 				case 'all':
 						foreach($rules as $rule) {
-							if($rule->all) {
+							if($rule->$accessLevel) {
 								$msg .= $this->formatRule($rule);
 								$c++;
 							}
@@ -431,7 +407,6 @@ class RulesController {
 							$this->db->exec($sql, time(), $sender, $args[4], $args[1]);
 							$msg = "Rule #{$args[1]} updated.";
 						}
-					break;
 			}
 			else {
 				$sql = "UPDATE `rules` SET `lastchange` = ?, `lastchangeby` = ?, `{$args[2]}` = ? WHERE `id` = ?";
@@ -566,22 +541,11 @@ class RulesController {
 		$msg .= "<br>";
 		if($full) {
 			$access = Array();
-			if($rule->admin) {
-				$access[] = 'admin';
+			foreach($this->groups as $group) {
+				if($rule->$group) {
+					$access[] = $group;
+				}
 			}
-			if($rule->mod) {
-				$access[] = 'mod';
-			}
-			if($rule->guild) {
-				$access[] = 'guild';
-			}
-			if($rule->member) {
-				$access[] = 'member';
-			}
-			if($rule->all) {
-				$access[] = 'all';
-			}
-
 			if(count($access) == 0) {
 				$access[] = '<yellow>INACTIVE<end>';
 			}
