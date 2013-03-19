@@ -48,6 +48,9 @@ class RulesController {
 	/** @Inject */
 	public $text;
 	
+	/** @Inject */
+	public $util;
+	
 	private $groups = Array('admin', 'mod', 'guild', 'member', 'all');
 	private $statesText = Array(-1 => ' does not exist.', 0 => ' has <red>not signed<end>.', 1 => ' needs to <yellow>resign<end>.', 2 => ' has <green>signed<end>', 3 => ' has <green>no rules to sign<end>.');
 	
@@ -558,7 +561,7 @@ class RulesController {
 	public function formatRule($rule, $full = false, $long = false) {
 		$msg = "<highlight>#{$rule->id} {$rule->title}<end>";
 		if($full) {
-			$msg .= ' '.date('c',$rule->lastchange)." by {$rule->lastchangeby}";
+			$msg .= ' '.$this->util->date($rule->lastchange)." by {$rule->lastchangeby}";
 		}
 		$msg .= "<br>";
 		if($full) {
