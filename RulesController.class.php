@@ -88,7 +88,7 @@ class RulesController {
 			}
 			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
-			$this->chatBot->sendTell('You neeed to sign the '.$msg, $eventObj->sender);
+			$this->chatBot->sendTell('You need to sign the '.$msg, $eventObj->sender);
 		}
 	}
 	
@@ -105,7 +105,7 @@ class RulesController {
 			}
 			$msg.='<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules_sign').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
-			$this->chatBot->sendTell('You neeed to sign the '.$msg, $eventObj->sender);
+			$this->chatBot->sendTell('You need to sign the '.$msg, $eventObj->sender);
 		}
 	}
 
