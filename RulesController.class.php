@@ -84,7 +84,7 @@ class RulesController {
 		if(count($rules) > 0) {
 			$msg = '';
 			foreach($rules as $rule) {
-				$msg .= $this->formatRule($rule);
+				$msg .= $this->formatRule($rule, false, true);
 			}
 			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules_sign').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
@@ -101,7 +101,7 @@ class RulesController {
 		if(count($rules) > 0) {
 			$msg = '';
 			foreach($rules as $rule) {
-				$msg.=$this->formatRule($rule);
+				$msg.=$this->formatRule($rule, false, true);
 			}
 			$msg.='<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules_sign').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
@@ -137,7 +137,7 @@ class RulesController {
 		else {
 			$msg = '';
 			foreach($rules as $rule) {
-				$msg .= $this->formatRule($rule);
+				$msg .= $this->formatRule($rule, false, true);
 			}
 			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
