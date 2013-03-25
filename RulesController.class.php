@@ -86,7 +86,7 @@ class RulesController {
 			foreach($rules as $rule) {
 				$msg .= $this->formatRule($rule, false, true);
 			}
-			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules_sign').'</center>';
+			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
 			$this->chatBot->sendTell('You neeed to sign the '.$msg, $eventObj->sender);
 		}
