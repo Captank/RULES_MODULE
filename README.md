@@ -114,6 +114,17 @@ If the parameter is 'title' the text will be set as the new rules title. Same go
 * **!rulesadmin rem 'id'**
 This command actually just removes all relations to any groups.
 
-**Notes**
-_________
+Additional information
+----------------------
+
+**Behavior**
+____________
+You have to sign the rules for each character separatly.
+
+Rules you have not signed yet, will spammed in a tell to you
+* on log on: `admin`,`mod` and `guild`
+* on private channel join: `member`,`all`
+
+**Deleting rules**
+__________________
 Rules can not get deleted manually. You can mark them as inactive, which means that they are not assigned to any group. After some day (depending on how many you set up) they will get deleted automatically. Also, all changes to rules keep who changed it.
