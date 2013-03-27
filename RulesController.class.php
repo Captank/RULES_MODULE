@@ -146,6 +146,28 @@ class RulesController {
 	}
 	
 	/**
+	 * This command handler shows the changed rules
+	 *
+	 * @HandlesCommand("rules")
+	 * @Matches("/^rules changes$/i")
+	 */
+	public function rulesChangesCommand($message, $channel, $sender, $sendto, $args) {
+		$rules = $this->getUnsignedRules($sender);
+		if(count($rules) == 0) {
+			$msg = 'Rules did not change.';
+		}
+		else {
+			$msg = '';
+			foreach($rules as $rule) {
+				$msg .= $this->formatRule($rule, false, true);
+			}
+			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
+			$msg = $this->text->make_blob('Changed rules', $msg);
+		}
+		$sendto->reply($msg);
+	}
+	
+	/**
 	 * This command handler let someone sign the rules
 	 *
 	 * @HandlesCommand("rules")

@@ -1,6 +1,9 @@
 To read the rules
 <highlight><tab><symbol>rules<end>
 
+To read the changed rules
+<highlight><tab><symbol>rules changes<end>
+
 To read a specifc rule
 <highlight><tab><symbol>rules 'id'<end>
 
