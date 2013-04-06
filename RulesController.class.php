@@ -64,6 +64,17 @@ class RulesController {
 	public $defaultMaxDays = "30";
 	
 	/**
+	 * @Setting("private_rules")
+	 * @Description("Use formular to force private message to show rules")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 */
+	public $defaultPrivateRules = "0";
+	
+	/**
 	 * @Setup
 	 */
 	public function setup() {
@@ -130,16 +141,22 @@ class RulesController {
 	 * @Matches("/^rules$/i")
 	 */
 	public function rulesCommand($message, $channel, $sender, $sendto, $args) {
-		$rules = $this->getRulesFor($this->accessManager->getAccesslevelForCharacter($sender));
-		if(count($rules) == 0) {
-			$msg = 'There are no rules set up for you.';
+		if($channel == 'msg' || intval($this->settingManager->get("private_rules")) == 0) {
+			$rules = $this->getRulesFor($this->accessManager->getAccesslevelForCharacter($sender));
+			if(count($rules) == 0) {
+				$msg = 'There are no rules set up for you.';
+			}
+			else {
+				$msg = '';
+				foreach($rules as $rule) {
+					$msg .= $this->formatRule($rule, false, true);
+				}
+				$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
+				$msg = $this->text->make_blob('Rules', $msg);
+			}
 		}
 		else {
-			$msg = '';
-			foreach($rules as $rule) {
-				$msg .= $this->formatRule($rule, false, true);
-			}
-			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
+			$msg = '<center>'.$this->text->make_chatcmd('Show to me assigned rules', '/tell <myname> rules').'</center>';
 			$msg = $this->text->make_blob('Rules', $msg);
 		}
 		$sendto->reply($msg);
@@ -152,17 +169,23 @@ class RulesController {
 	 * @Matches("/^rules changes$/i")
 	 */
 	public function rulesChangesCommand($message, $channel, $sender, $sendto, $args) {
-		$rules = $this->getUnsignedRules($sender);
-		if(count($rules) == 0) {
-			$msg = 'Rules did not change.';
+		if($channel == 'msg' || intval($this->settingManager->get("private_rules")) == 0) {
+			$rules = $this->getUnsignedRules($sender);
+			if(count($rules) == 0) {
+				$msg = 'Rules did not change.';
+			}
+			else {
+				$msg = '';
+				foreach($rules as $rule) {
+					$msg .= $this->formatRule($rule, false, true);
+				}
+				$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
+				$msg = $this->text->make_blob('Changed rules', $msg);
+			}
 		}
 		else {
-			$msg = '';
-			foreach($rules as $rule) {
-				$msg .= $this->formatRule($rule, false, true);
-			}
-			$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
-			$msg = $this->text->make_blob('Changed rules', $msg);
+			$msg = '<center>'.$this->text->make_chatcmd('Show rules I need to sign', '/tell <myname> rules').'</center>';
+			$msg = $this->text->make_blob('Rules', $msg);
 		}
 		$sendto->reply($msg);
 	}
