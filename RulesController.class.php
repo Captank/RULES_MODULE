@@ -440,6 +440,33 @@ class RulesController {
 	}
 	
 	/**
+	 * This command handler spams unsigned rules to online people.
+	 *
+	 * @HandlesCommand("rulesadmin")
+	 * @Matches("/^rulesadmin spam$/i")
+	 */
+	public function rulesAdminSpamCommand($message, $channel, $sender, $sendto, $args) {
+		$sql = 'SELECT `name` FROM `online` ORDER BY `name` ASC;';
+		$olist = $this->db->query($sql);
+		
+		$count = 0;
+		foreach($olist as $player) {
+			$urules = $this->getUnsignedRules($player->name);
+			if(count($urules) > 0) {
+				$count++;
+				$msg = '';
+				foreach($urules as $rule) {
+					$msg .= $this->formatRule($rule, false, true);
+				}
+				$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
+				$msg = $this->text->make_blob('Rules', $msg);
+				$this->chatBot->sendTell('You need to sign the '.$msg, $player->name);
+			}
+ 		}
+	 	$sendto->reply('Spammed rules to '.$count.' people.');
+	}
+	
+	/**
 	 * This command handler is for removing (setting inactive) rules
 	 *
 	 * @HandlesCommand("rulesadmin")
