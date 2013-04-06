@@ -71,6 +71,7 @@ class RulesController {
 	 * @Options("true;false")
 	 * @Intoptions("1;0")
 	 * @AccessLevel("mod")
+	 * @Help("private_rules.txt")
 	 */
 	public $defaultPrivateRules = "0";
 	

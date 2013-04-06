@@ -1,0 +1,7 @@
+Sometimes you may want to hide the rule differences between different groups, if that is the case enable private_rules.
+
+This setting affects only <highlight><symbol>rules<end> and <highlight><symbol>rules changes<end> when they are used in private channel or org channel.
+
+If enabled, these commands will just respond with a link, to force people use it as private message (/tell) and only if the command is given as private message the real rule contents shows up.
+
+If disabled, these commands will show the real rule contents directly and everyone can see them.
