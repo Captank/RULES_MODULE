@@ -87,6 +87,9 @@ _________________
 This command will show you all rules that are assigned to your group.
 At the end of the rules will be the link to sign the rules.
 
+* **!rules changes**
+This command shows you all rules that are assigned to your group and you have not signed yet.
+
 * **!rules 'id'**
 This command will show you a specific rule, IF it is assigned to your group. (Except, if you are mod or admin)
 
@@ -103,6 +106,9 @@ If you want it for specific players, simply write the names separated by white s
 Without any parameters (besides show) this command will show ALL rules. The rules text will be shortened to the next white space after 25 characters (not sure about the number yet)
 If the parameter long is given as well, rules texts doesnt get shortened.
 If a group (or 'inactive') is given, it will only show the rules that are assigned to the given group (or the inactive).
+
+* **!rulesadmin spam**
+This command will spam the rules that are not signed to each online member/people that are in private channel.
 
 * **!rulesadmin add 'title' 'text'**
 This command will create a new rule the first word will be the rules title, the rest the rules text. If you want more than one word as the title you need to surround it by single or double quotes (Example !rulesadmin add 'the title' a random and senseless text)
