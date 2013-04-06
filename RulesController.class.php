@@ -571,7 +571,7 @@ class RulesController {
 			if(count($access) == 0) {
 				$access[] = '<yellow>INACTIVE<end>';
 			}
-			$msg .= implode(', ', $access).' '.$this->text->make_chatcmd('edit', "/tell <myname> rulesadmin edit groups {$rule->id}").'<br>';
+			$msg .= implode(', ', $access).' '.$this->text->make_chatcmd('edit', "/tell <myname> rulesadmin edit {$rule->id} groups").'<br>';
 		}
 		return $msg.($long?$rule->text:preg_replace("~^(.{10}[^\\s]*)\\s.*$~","$1 ...", $rule->text)).'<br><br><pagebreak>';
 	}
