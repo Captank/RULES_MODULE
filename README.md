@@ -137,6 +137,16 @@ If the parameter is 'title' the text will be set as the new rules title. Same go
 * **!rulesadmin rem 'id'**
 This command actually just removes all relations to any groups.
 
+Settings
+--------
+
+* **maxdays**
+Default: 30 Options: 5, 10, 20, 30, 40 - Inactive rules will be deleted after a specific time, this setting defines after how many days without touching the rule, it will be deleted.
+
+* **private_rules**
+Default: false Options: true, false - If this setting is active (true), instead of spamming the rules directly in organization/private channel, a link to spamm them as tell will be spammed. The affected commands are: '!rules' and '!rules changes'
+
+
 Additional information
 ----------------------
 
