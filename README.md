@@ -70,10 +70,27 @@ Change it to:
 ```php
   $vars['module_load_paths'] = array(
 		'./modules',
-  	'./proprietary',
+		'./proprietary'
 	);
 ```
-If your bot(s) are running, restart them now.
+**Budabot v3.0 vs. Budabot v3.1**
+_________________________________
+Budabot v3.1 uses namespaces, Budabot v3.0 does not. The reprository code is now for Version 3.1
+If you are running v3.0, there is an easy way to make it compatible, just comment out
+line #4.
+Thats the original line:
+
+```php
+	use Budabot\Core\AccessManager;
+```
+
+And here it's modified:
+
+```php
+	//use Budabot\Core\AccessManager;
+```
+
+***If your bot(s) are running, restart them now.***
 
 The commands
 ------------
