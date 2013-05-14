@@ -251,7 +251,7 @@ class RulesController {
 	}
 	
 	/**
-	 * This command handler shows a specific rule
+	 * This command handler searches rules by keywords
 	 *
 	 * @HandlesCommand("rules")
 	 * @Matches("/^rules search (.+)$/i")
