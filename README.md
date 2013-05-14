@@ -77,7 +77,7 @@ Change it to:
 _________________________________
 Budabot v3.1 uses namespaces, Budabot v3.0 does not. The reprository code is now for Version 3.1
 If you are running v3.0, there is an easy way to make it compatible, just comment out
-line #4.
+line #6.
 Thats the original line:
 
 ```php
