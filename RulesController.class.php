@@ -1,5 +1,7 @@
 <?php
 
+namespace Budabot\User\Modules;
+
 //Comment the following line if your php version doesn't support namespaces
 use \Budabot\Core\AccessManager;
 
