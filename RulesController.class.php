@@ -479,6 +479,7 @@ class RulesController {
 		$olist = $this->db->query($sql);
 		
 		$count = 0;
+		$spams = Array();
 		foreach($olist as $player) {
 			$urules = $this->getUnsignedRules($player->name);
 			if(count($urules) > 0) {
@@ -488,11 +489,14 @@ class RulesController {
 					$msg .= $this->formatRule($rule, false, true);
 				}
 				$msg .= '<center>'.$this->text->make_chatcmd('Accept the rules', '/tell <myname> rules sign').'</center>';
-				$msg = $this->text->make_blob('Rules', $msg);
-				$this->chatBot->sendTell('You need to sign the '.$msg, $player->name);
+				$msg = 
+				$spams[$player->name] = 'You need to sign the '.$this->text->make_blob('Rules', $msg);
 			}
  		}
-	 	$sendto->reply('Spammed rules to '.$count.' people.');
+	 	$sendto->reply('Spamming rules to '.$count.' people.');
+	 	foreach($spams as $player => $msg) {
+	 		$this->chatBot->sendTell($msg, $player);
+	 	}
 	}
 	
 	/**
