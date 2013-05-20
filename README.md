@@ -154,7 +154,6 @@ Additional information
 
 **Behavior**
 ____________
-You have to sign the rules for each character separatly.
 
 Rules you have not signed yet, will spammed in a tell to you
 * on log on: `admin`,`mod` and `guild`
