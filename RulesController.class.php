@@ -4,6 +4,7 @@ namespace Budabot\User\Modules;
 
 //Comment the following line if your php version doesn't support namespaces
 use \Budabot\Core\AccessManager;
+use \Budabot\Core\Modules\AltsController;
 
 /**
  * Author:
@@ -48,6 +49,9 @@ class RulesController {
 	public $settingManager;
 	
 	/** @Inject */
+	public $altsController;
+	
+	/** @Inject */
 	public $db;
 	
 	/** @Inject */
@@ -79,6 +83,18 @@ class RulesController {
 	 * @Help("private_rules.txt")
 	 */
 	public $defaultPrivateRules = "0";
+	
+	/**
+	 * @Setting("sign_alts")
+	 * @Description("Sign the rules for all validated alts")
+	 * @Visibility("edit")
+	 * @Type("options")
+	 * @Options("true;false")
+	 * @Intoptions("1;0")
+	 * @AccessLevel("mod")
+	 * @Help("private_rules.txt")
+	 */
+	public $defaultSignAlts = "1";
 	
 	/**
 	 * @Setup
@@ -204,8 +220,23 @@ class RulesController {
 	 */
 	public function signCommand($message, $channel, $sender, $sendto, $args) {
 		$sql = 'REPLACE INTO `rules_signs` (`player`, `signtime`) VALUES (?, ?);';
-		$this->db->exec($sql, $sender, time());
-		$sendto->reply("You signed the rules.");
+		$time = time();
+		$alts_info = $this->altsController->get_alt_info($sender);
+		$chars = Array();
+		$chars[$sender] = 1;
+		if(intval($this->settingManager->get("sign_alts")) && ($alts_info->main == $sender || (isset($alts_info->alts[$sender]) && $alts_info->alts[$sender]))) {
+			$chars[$alts_info->main] = 1;
+			foreach($alts_info->alts as $c => $v) {
+				if($v) {
+					$chars[$c] = 1;
+				}
+			}
+		}
+		$chars = array_keys($chars);
+		foreach($chars as $char) {
+			$this->db->exec($sql, $char, $time);
+		}
+		$sendto->reply("You signed the rules".(count($chars) > 1 ? ' for all your alts' : '').".");
 	}
 	
 	/**

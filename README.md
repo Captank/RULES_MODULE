@@ -146,6 +146,8 @@ Default: 30 Options: 5, 10, 20, 30, 40 - Inactive rules will be deleted after a 
 * **private_rules**
 Default: false Options: true, false - If this setting is active (true), instead of spamming the rules directly in organization/private channel, a link to spamm them as tell will be spammed. The affected commands are: '!rules' and '!rules changes'
 
+* **sign_alts**
+Default: true Options: true, false - If this setting is active (true), rules will be signed for all validated alts if signer is either main or validated alt.
 
 Additional information
 ----------------------
