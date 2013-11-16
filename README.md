@@ -1,10 +1,6 @@
 RULES_MODULE
 ============
 
-
-WARNING: INSTALL INSTRUCTIONS ARE OUTDATED! (working on new install instructions/auto install tho)
-==================================================================================================
-
 How does it work?
 -----------------
 The most important thing, how this module is designed is, that rules are assigned to different groups.
@@ -48,13 +44,20 @@ mkdir RULES_MODULE
 git clone git://github.com/Captank/RULES_MODULE.git RULES_MODULE
 ```
 
-**Include the files to your Budabot**
+**Automated install on Windows**
+_________________________________
+*(Note: Even if I mention this first, read the other parts of the installation steps, too, for better understanding)*
+
+For Windows I have prepared an installation tool, just make sure that your files are within the Budabot directory,
+then double click the `install.bat` (or run it from command line) and follow the instructions.
+
+That installation tool can also be used to just modify the later created configuration files (for example, when you create a new bot) for using modules in the `proprietary` directory.
+
+*It will also care itself about the differences between Budabot v3.0 and v3.1*
+
+
+**Include the files to your Budabot manually**
 _____________________________________
-There are two ways how you got Budabot installed.
-Either you downloaded the zip file or you are using nightly builds.
-* Downloaded zip:
-Move the RULES_MODULE directory to <buda>/modules/
-* Nighlty builds:
 This is a bit more difficult, if you place the RULES_DIRECTORY to <buda>/modules/ next time you pull the repository the folder will get deleted.
 So in first place you create a directory for your custom modules. In this example it will be named `proprietary`.
 Open your Budabot directory and create `proprietary` in there.
@@ -85,13 +88,27 @@ line #6.
 Thats the original line:
 
 ```php
-	use Budabot\Core\AccessManager;
+	<?php
+	/*DELETE_FOR_V3.0*/
+	namespace Budabot\User\Modules;
+
+	use \Budabot\Core\AccessManager;
+	use \Budabot\Core\Modules\AltsController;
+	/*DELETE_FOR_V3.0*/
+	
+	/**
+ 	* Author:
+ 	*  - Captank (RK2)
 ```
 
 And here it's modified:
 
 ```php
-	//use Budabot\Core\AccessManager;
+	<?php
+	
+	/**
+ 	* Author:
+ 	*  - Captank (RK2)
 ```
 
 ***If your bot(s) are running, restart them now.***
