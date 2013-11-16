@@ -1,6 +1,10 @@
 RULES_MODULE
 ============
 
+
+WARNING: INSTALL INSTRUCTIONS ARE OUTDATED! (working on new install instructions/auto install tho)
+==================================================================================================
+
 How does it work?
 -----------------
 The most important thing, how this module is designed is, that rules are assigned to different groups.
