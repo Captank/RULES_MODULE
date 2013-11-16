@@ -9,6 +9,7 @@ if exist {php-win.ini} (
 .\win32\php -c php-win.ini -f "%~dp0\install.php"
 
 cd "%~dp0"
+PAUSE
 :: This file is part of Budabot.
 ::
 :: Budabot is free software: you can redistribute it and/org modify
