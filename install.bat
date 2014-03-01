@@ -6,7 +6,7 @@ if exist {php-win.ini} (
 	cd ..
 )
 
-.\win32\php -c php-win.ini -f "%~dp0\install.php"
+.\win32\php -c php-win.ini -f "%~dp0\install.php.hidden"
 
 cd "%~dp0"
 PAUSE
