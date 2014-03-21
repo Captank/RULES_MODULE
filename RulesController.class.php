@@ -1,10 +1,4 @@
 <?php
-/*DELETE_FOR_V3.0*/
-namespace Budabot\User\Modules;
-
-use \Budabot\Core\AccessManager;
-use \Budabot\Core\Modules\AltsController;
-/*DELETE_FOR_V3.0*/
 
 /**
  * Author:
